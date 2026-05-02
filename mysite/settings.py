@@ -10,23 +10,26 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-iw(*)no9yfcok5sht6(lu(ikh0n%q8uugg6z@hs=z7rik0my*f"
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-iw(*)no9yfcok5sht6(lu(ikh0n%q8uugg6z@hs=z7rik0my*f")
+
+FLY_APP_NAME = os.getenv("FLY_APP_NAME")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = FLY_APP_NAME is None
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    f"{FLY_APP_NAME}.fly.dev",
+]
 
 # Application definition
 
@@ -73,13 +76,25 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+if FLY_APP_NAME:
+    DATABASE_PATH = "/data/db.sqlite3"
+else:
+    DATABASE_PATH = BASE_DIR / "db.sqlite3"
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": DATABASE_PATH,
+        "OPTIONS": {
+            "init_command": (
+                "PRAGMA journal_mode=WAL;"
+                "PRAGMA synchronous=NORMAL;"
+                "PRAGMA busy_timeout=5000;"
+                "PRAGMA temp_store=MEMORY;"
+            ),
+        },
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
