@@ -40,4 +40,4 @@ uv run gunicorn mysite.wsgi:application --bind 0.0.0.0:8000 &
 ./tailscale serve --bg http://127.0.0.1:8000
 
 # Keep container alive
-wait
+wait -n
